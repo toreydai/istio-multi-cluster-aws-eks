@@ -271,25 +271,39 @@ kubectl apply --context="${CTX_CLUSTER2}" \
 ### 4.5 验证跨集群流量
 i. 从Cluster1的Sleep Pod发送请求给服务HelloWorld
 ```
-kubectl exec --context="${CTX_CLUSTER1}" -n sample -c sleep \
-    "$(kubectl get pod --context="${CTX_CLUSTER1}" -n sample -l \
-    app=sleep -o jsonpath='{.items[0].metadata.name}')" \
-    -- curl helloworld.sample:5000/hello
+for i in $(seq 6); do
+ 	kubectl exec \
+ 	 	--context="${CTX_CLUSTER1}" \
+ 	 	-n sample \
+ 	 	-c sleep \
+ 	 	"$(kubectl get pod --context="${CTX_CLUSTER1}" -n sample -l app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl -sS helloworld.sample:5000/hello
+done
 ```
 反复执行多次，验证HelloWorld版本在V1和V2之前切换
 ```
 Hello version: v1, instance: helloworld-v1-69ff8fc747-s2c87
 Hello version: v2, instance: helloworld-v2-779454bb5f-bvt6k
+Hello version: v2, instance: helloworld-v2-779454bb5f-bvt6k
+Hello version: v1, instance: helloworld-v1-69ff8fc747-s2c87
+Hello version: v2, instance: helloworld-v2-779454bb5f-bvt6k
+Hello version: v1, instance: helloworld-v1-69ff8fc747-s2c87
 ```
 ii. 从Cluster2的Sleep Pod重复上一过程
 ```
-kubectl exec --context="${CTX_CLUSTER2}" -n sample -c sleep \
-    "$(kubectl get pod --context="${CTX_CLUSTER2}" -n sample -l \
-    app=sleep -o jsonpath='{.items[0].metadata.name}')" \
-    -- curl helloworld.sample:5000/hello
+for i in $(seq 6); do
+ 	kubectl exec \
+ 	 	--context="${CTX_CLUSTER2}" \
+ 	 	-n sample \
+ 	 	-c sleep \
+ 	 	"$(kubectl get pod --context="${CTX_CLUSTER2}" -n sample -l app=sleep -o jsonpath='{.items[0].metadata.name}')" -- curl -sS helloworld.sample:5000/hello
+done
 ```
 反复执行多次，验证HelloWorld版本在V1和V2之前切换
 ```
+Hello version: v2, instance: helloworld-v2-779454bb5f-bvt6k
+Hello version: v1, instance: helloworld-v1-69ff8fc747-s2c87
+Hello version: v1, instance: helloworld-v1-69ff8fc747-s2c87
+Hello version: v1, instance: helloworld-v1-69ff8fc747-s2c87
 Hello version: v2, instance: helloworld-v2-779454bb5f-bvt6k
 Hello version: v1, instance: helloworld-v1-69ff8fc747-s2c87
 ```
